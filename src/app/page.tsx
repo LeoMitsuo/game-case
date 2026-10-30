@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import BotaoSair from '@/components/BotaoSair';
 import CardJogo from '@/components/CardJogo';
@@ -24,7 +25,15 @@ export default async function HomePage() {
           <h1 className="text-lg font-bold text-zinc-50">Game Case</h1>
           <p className="text-xs text-zinc-500">{user?.email}</p>
         </div>
-        <BotaoSair />
+        <div className="flex items-center gap-3">
+          <Link
+            href="/buscar"
+            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
+          >
+            Adicionar jogo
+          </Link>
+          <BotaoSair />
+        </div>
       </header>
 
       <div className="px-6 py-8">
