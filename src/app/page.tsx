@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import BotaoSair from '@/components/BotaoSair';
-import CardJogo from '@/components/CardJogo';
+import ListaColecao from '@/components/ListaColecao';
 import { ItemColecao } from '@/types/colecao';
 
 export default async function HomePage() {
@@ -53,11 +53,7 @@ export default async function HomePage() {
             <p className="mb-4 text-sm text-zinc-500">
               {itens.length} {itens.length === 1 ? 'jogo' : 'jogos'}
             </p>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-              {(itens as ItemColecao[]).map((item) => (
-                <CardJogo key={item.id} item={item} />
-              ))}
-            </div>
+            <ListaColecao itens={itens as ItemColecao[]} />
           </>
         )}
       </div>

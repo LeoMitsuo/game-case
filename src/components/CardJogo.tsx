@@ -7,9 +7,19 @@ const CORES_STATUS: Record<string, string> = {
   dropped: 'bg-red-500/15 text-red-400',
 };
 
-export default function CardJogo({ item }: { item: ItemColecao }) {
+export default function CardJogo({
+  item,
+  onEditar,
+}: {
+  item: ItemColecao;
+  onEditar: (item: ItemColecao) => void;
+}) {
   return (
-    <article className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
+    <button
+      type="button"
+      onClick={() => onEditar(item)}
+      className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 text-left transition hover:border-zinc-600"
+    >
       <div className="aspect-[3/4] bg-zinc-800">
         {item.cover_url ? (
           <img
@@ -44,6 +54,6 @@ export default function CardJogo({ item }: { item: ItemColecao }) {
           <p className="text-xs text-zinc-500">{item.platform}</p>
         )}
       </div>
-    </article>
+    </button>
   );
 }
