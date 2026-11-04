@@ -23,6 +23,11 @@ export async function GET(request: Request) {
     const resposta = await fetch(url, { next: { revalidate: 3600 } });
 
     if (!resposta.ok) {
+      console.error(
+        'RAWG falhou | status:', resposta.status,
+        '| chave presente:', Boolean(process.env.RAWG_API_KEY),
+        '| tamanho da chave:', process.env.RAWG_API_KEY?.length
+      );
       return Response.json(
         { erro: 'Não foi possível buscar jogos agora.' },
         { status: 502 }
@@ -41,7 +46,8 @@ export async function GET(request: Request) {
     }));
 
     return Response.json({ resultados });
-  } catch {
+  } catch (e) {
+    console.error('RAWG erro de rede:', e);
     return Response.json(
       { erro: 'Não foi possível buscar jogos agora.' },
       { status: 502 }
