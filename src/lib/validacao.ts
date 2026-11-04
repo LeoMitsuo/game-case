@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const schemaItem = z.object({
   status: z.enum(['playing', 'finished', 'backlog', 'dropped']),
   platform: z.string().max(60).nullable(),
-  rating: z.coerce
+  rating: z
     .number()
     .int()
     .min(1, 'A nota vai de 1 a 10.')

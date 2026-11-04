@@ -99,7 +99,7 @@ export default function FormEditarJogo({
             </label>
             <input
               id="platform"
-              {...register('platform')}
+              {...register('platform', { setValueAs: (v) => (v === '' ? null : v) })}
               className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
             />
           </div>
@@ -113,7 +113,9 @@ export default function FormEditarJogo({
               type="number"
               min={1}
               max={10}
-              {...register('rating')}
+              {...register('rating', {
+              setValueAs: (v) => (v === '' || v === null ? null : Number(v)),
+              })}
               className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
             />
             {errors.rating && (
@@ -128,7 +130,7 @@ export default function FormEditarJogo({
             <textarea
               id="notes"
               rows={3}
-              {...register('notes')}
+              {...register('notes', { setValueAs: (v) => (v === '' ? null : v) })}
               className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
             />
             {errors.notes && (

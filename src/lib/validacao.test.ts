@@ -32,15 +32,14 @@ describe('schemaItem', () => {
     expect(r.success).toBe(false);
   });
 
-  test('converte nota enviada como texto pelo formulário', () => {
+  test('aceita nota nula quando o usuário não preenche', () => {
     const r = schemaItem.safeParse({
-      status: 'finished',
+     status: 'backlog',
       platform: null,
-      rating: '7',
-      notes: null,
+      rating: null,
+     notes: null,
     });
     expect(r.success).toBe(true);
-    if (r.success) expect(r.data.rating).toBe(7);
   });
 
   test('rejeita anotação acima de 500 caracteres', () => {
