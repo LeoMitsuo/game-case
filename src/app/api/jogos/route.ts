@@ -1,9 +1,40 @@
-type RawgJogo = {
+type IgdbJogo = {
   id: number;
   name: string;
-  background_image: string | null;
-  platforms: { platform: { name: string } }[] | null;
+  cover?: { image_id: string };
+  platforms?: { name: string }[];
 };
+
+// O token de acesso vale ~60 dias. Guardamos em memória para não
+// pedir um novo a cada busca; se a função esfriar, pede de novo.
+let tokenCache: { valor: string; expiraEm: number } | null = null;
+
+async function obterToken(): Promise<string> {
+  if (tokenCache && Date.now() < tokenCache.expiraEm) {
+    return tokenCache.valor;
+  }
+
+  const url = new URL('https://id.twitch.tv/oauth2/token');
+  url.searchParams.set('client_id', process.env.TWITCH_CLIENT_ID!);
+  url.searchParams.set('client_secret', process.env.TWITCH_CLIENT_SECRET!);
+  url.searchParams.set('grant_type', 'client_credentials');
+
+  const resposta = await fetch(url, { method: 'POST', cache: 'no-store' });
+
+  if (!resposta.ok) {
+    throw new Error(`Falha ao obter token: ${resposta.status}`);
+  }
+
+  const dados = await resposta.json();
+
+  tokenCache = {
+    valor: dados.access_token,
+    // margem de 60s para nunca usar um token prestes a expirar
+    expiraEm: Date.now() + (dados.expires_in - 60) * 1000,
+  };
+
+  return tokenCache.valor;
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -13,41 +44,50 @@ export async function GET(request: Request) {
     return Response.json({ resultados: [] });
   }
 
-  const url = new URL('https://api.rawg.io/api/games');
-  url.searchParams.set('key', process.env.RAWG_API_KEY!);
-  url.searchParams.set('search', termo);
-  url.searchParams.set('page_size', '12');
-
   try {
-    // revalidate: cache da resposta por 1 hora, economizando cota da API
-    const resposta = await fetch(url, { next: { revalidate: 3600 } });
+    const token = await obterToken();
+
+    // Apicalypse: linguagem de consulta da IGDB, enviada no corpo do POST.
+    // As aspas são removidas do termo para não quebrar a sintaxe.
+    const consulta = `
+      search "${termo.replace(/"/g, '')}";
+      fields name, cover.image_id, platforms.name;
+      limit 12;
+    `;
+
+    const resposta = await fetch('https://api.igdb.com/v4/games', {
+      method: 'POST',
+      headers: {
+        'Client-ID': process.env.TWITCH_CLIENT_ID!,
+        Authorization: `Bearer ${token}`,
+      },
+      body: consulta,
+      // Sem cache: uma resposta com erro ficaria congelada por uma hora,
+      // problema que enfrentamos com a API anterior.
+      cache: 'no-store',
+    });
 
     if (!resposta.ok) {
-      console.error(
-        'RAWG falhou | status:', resposta.status,
-        '| chave presente:', Boolean(process.env.RAWG_API_KEY),
-        '| tamanho da chave:', process.env.RAWG_API_KEY?.length
-      );
       return Response.json(
         { erro: 'Não foi possível buscar jogos agora.' },
         { status: 502 }
       );
     }
 
-    const dados = await resposta.json();
+    const jogos: IgdbJogo[] = await resposta.json();
 
-    // Devolvemos apenas os campos que a aplicação usa, já no formato
-    // da nossa tabela. Trocar de API no futuro muda só este trecho.
-    const resultados = dados.results.map((jogo: RawgJogo) => ({
+    // Mesmos quatro campos de antes: a tela de busca não muda.
+    const resultados = jogos.map((jogo) => ({
       external_id: String(jogo.id),
       title: jogo.name,
-      cover_url: jogo.background_image,
-      platforms: jogo.platforms?.map((p) => p.platform.name) ?? [],
+      cover_url: jogo.cover
+        ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${jogo.cover.image_id}.jpg`
+        : null,
+      platforms: jogo.platforms?.map((p) => p.name) ?? [],
     }));
 
     return Response.json({ resultados });
-  } catch (e) {
-    console.error('RAWG erro de rede:', e);
+  } catch {
     return Response.json(
       { erro: 'Não foi possível buscar jogos agora.' },
       { status: 502 }

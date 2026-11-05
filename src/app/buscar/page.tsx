@@ -206,13 +206,8 @@ export default function BuscarPage() {
       <footer className="border-t border-zinc-800 px-6 py-4">
         <p className="text-xs text-zinc-600">
           Dados e imagens fornecidos por{' '}
-          <a
-            href="https://rawg.io"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-zinc-400"
-          >
-            RAWG
+          <a href="https://www.igdb.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-zinc-400">
+            IGDB
           </a>
         </p>
       </footer>
