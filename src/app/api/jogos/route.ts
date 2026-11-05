@@ -14,18 +14,30 @@ async function obterToken(): Promise<string> {
     return tokenCache.valor;
   }
 
-  const url = new URL('https://id.twitch.tv/oauth2/token');
-  url.searchParams.set('client_id', process.env.TWITCH_CLIENT_ID!);
-  url.searchParams.set('client_secret', process.env.TWITCH_CLIENT_SECRET!);
-  url.searchParams.set('grant_type', 'client_credentials');
+  // Credenciais vão no corpo, como manda o fluxo client_credentials.
+  const corpoToken = new URLSearchParams({
+    client_id: process.env.TWITCH_CLIENT_ID!,
+    client_secret: process.env.TWITCH_CLIENT_SECRET!,
+    grant_type: 'client_credentials',
+  });
 
-  const resposta = await fetch(url, { method: 'POST', cache: 'no-store' });
+  const resposta = await fetch('https://id.twitch.tv/oauth2/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      // Sem User-Agent, serviços atrás de Cloudflare costumam recusar
+      // a requisição com 403.
+      'User-Agent': 'game-case/1.0 (+https://game-case-seven.vercel.app)',
+    },
+    body: corpoToken,
+    cache: 'no-store',
+  });
 
   if (!resposta.ok) {
+    const corpo = await resposta.text();
     console.error(
       'Token Twitch falhou | status:', resposta.status,
-      '| id presente:', Boolean(process.env.TWITCH_CLIENT_ID),
-      '| secret presente:', Boolean(process.env.TWITCH_CLIENT_SECRET)
+      '| corpo:', corpo
     );
     throw new Error(`Falha ao obter token: ${resposta.status}`);
   }
@@ -65,6 +77,7 @@ export async function GET(request: Request) {
       headers: {
         'Client-ID': process.env.TWITCH_CLIENT_ID!,
         Authorization: `Bearer ${token}`,
+        'User-Agent': 'game-case/1.0 (+https://game-case-seven.vercel.app)',
       },
       body: consulta,
       // Sem cache: uma resposta com erro ficaria congelada por uma hora,
@@ -73,7 +86,10 @@ export async function GET(request: Request) {
     });
 
     if (!resposta.ok) {
-      console.error('IGDB falhou | status:', resposta.status, '| corpo:', await resposta.text());
+      console.error(
+        'IGDB falhou | status:', resposta.status,
+        '| corpo:', await resposta.text()
+      );
       return Response.json(
         { erro: 'Não foi possível buscar jogos agora.' },
         { status: 502 }
