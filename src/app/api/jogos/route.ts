@@ -22,6 +22,11 @@ async function obterToken(): Promise<string> {
   const resposta = await fetch(url, { method: 'POST', cache: 'no-store' });
 
   if (!resposta.ok) {
+    console.error(
+      'Token Twitch falhou | status:', resposta.status,
+      '| id presente:', Boolean(process.env.TWITCH_CLIENT_ID),
+      '| secret presente:', Boolean(process.env.TWITCH_CLIENT_SECRET)
+    );
     throw new Error(`Falha ao obter token: ${resposta.status}`);
   }
 
@@ -68,6 +73,7 @@ export async function GET(request: Request) {
     });
 
     if (!resposta.ok) {
+      console.error('IGDB falhou | status:', resposta.status, '| corpo:', await resposta.text());
       return Response.json(
         { erro: 'Não foi possível buscar jogos agora.' },
         { status: 502 }
@@ -87,7 +93,8 @@ export async function GET(request: Request) {
     }));
 
     return Response.json({ resultados });
-  } catch {
+  } catch (e) {
+    console.error('Erro na busca:', e);
     return Response.json(
       { erro: 'Não foi possível buscar jogos agora.' },
       { status: 502 }
