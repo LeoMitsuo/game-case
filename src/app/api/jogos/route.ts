@@ -5,6 +5,8 @@ type IgdbJogo = {
   platforms?: { name: string }[];
 };
 
+const USER_AGENT = 'game-case/1.0 (+https://game-case-seven.vercel.app)';
+
 // O token de acesso vale ~60 dias. Guardamos em memória para não
 // pedir um novo a cada busca; se a função esfriar, pede de novo.
 let tokenCache: { valor: string; expiraEm: number } | null = null;
@@ -25,20 +27,14 @@ async function obterToken(): Promise<string> {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      // Sem User-Agent, serviços atrás de Cloudflare costumam recusar
-      // a requisição com 403.
-      'User-Agent': 'game-case/1.0 (+https://game-case-seven.vercel.app)',
+      // Sem User-Agent, serviços atrás de Cloudflare recusam com 403.
+      'User-Agent': USER_AGENT,
     },
     body: corpoToken,
     cache: 'no-store',
   });
 
   if (!resposta.ok) {
-    const corpo = await resposta.text();
-    console.error(
-      'Token Twitch falhou | status:', resposta.status,
-      '| corpo:', corpo
-    );
     throw new Error(`Falha ao obter token: ${resposta.status}`);
   }
 
@@ -77,19 +73,14 @@ export async function GET(request: Request) {
       headers: {
         'Client-ID': process.env.TWITCH_CLIENT_ID!,
         Authorization: `Bearer ${token}`,
-        'User-Agent': 'game-case/1.0 (+https://game-case-seven.vercel.app)',
+        'User-Agent': USER_AGENT,
       },
       body: consulta,
-      // Sem cache: uma resposta com erro ficaria congelada por uma hora,
-      // problema que enfrentamos com a API anterior.
+      // Sem cache: uma resposta com erro ficaria congelada por uma hora.
       cache: 'no-store',
     });
 
     if (!resposta.ok) {
-      console.error(
-        'IGDB falhou | status:', resposta.status,
-        '| corpo:', await resposta.text()
-      );
       return Response.json(
         { erro: 'Não foi possível buscar jogos agora.' },
         { status: 502 }
@@ -98,7 +89,8 @@ export async function GET(request: Request) {
 
     const jogos: IgdbJogo[] = await resposta.json();
 
-    // Mesmos quatro campos de antes: a tela de busca não muda.
+    // Apenas os campos que a aplicação usa, já no formato da nossa
+    // tabela. Trocar de API muda só este trecho.
     const resultados = jogos.map((jogo) => ({
       external_id: String(jogo.id),
       title: jogo.name,
@@ -109,8 +101,7 @@ export async function GET(request: Request) {
     }));
 
     return Response.json({ resultados });
-  } catch (e) {
-    console.error('Erro na busca:', e);
+  } catch {
     return Response.json(
       { erro: 'Não foi possível buscar jogos agora.' },
       { status: 502 }
