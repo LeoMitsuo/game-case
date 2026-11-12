@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import Toast, { TipoToast } from '@/components/Toast';
 
 type JogoEncontrado = {
   external_id: string;
@@ -19,13 +20,24 @@ export default function BuscarPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState<string | null>(null);
   const [mensagem, setMensagem] = useState<{
+    id: number;
     texto: string;
-    tipo: 'sucesso' | 'aviso';
+    tipo: TipoToast;
   } | null>(null);
 
   const controladorRef = useRef<AbortController | null>(null);
   const router = useRouter();
   const supabase = createClient();
+
+  // Identidade estável: sem isso o efeito do Toast se refaz a cada
+  // renderização e o cronômetro de 4s nunca chega ao fim.
+  const fecharMensagem = useCallback(() => setMensagem(null), []);
+
+  // O id garante que cada aviso seja um componente novo (ver key no JSX),
+  // reiniciando o cronômetro mesmo quando o texto se repete.
+  function mostrarAviso(texto: string, tipo: TipoToast) {
+    setMensagem({ id: Date.now(), texto, tipo });
+  }
 
   // Debounce: só busca 400ms depois que o usuário para de digitar.
   // A limpeza do efeito cancela o agendamento anterior a cada tecla.
@@ -80,7 +92,7 @@ export default function BuscarPage() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      setMensagem({ texto: 'Sessão expirada. Entre novamente.', tipo: 'aviso' });
+      mostrarAviso('Sessão expirada. Entre novamente.', 'aviso');
       setSalvando(null);
       return;
     }
@@ -96,20 +108,17 @@ export default function BuscarPage() {
 
     if (error) {
       // 23505 = violação de índice único: o jogo já está na coleção
-      setMensagem(
-        error.code === '23505'
-          ? { texto: 'Esse jogo já está na sua coleção.', tipo: 'aviso' }
-          : { texto: 'Não foi possível adicionar. Tente novamente.', tipo: 'aviso' }
-      );
+      if (error.code === '23505') {
+        mostrarAviso('Esse jogo já está na sua coleção.', 'aviso');
+      } else {
+        mostrarAviso('Não foi possível adicionar. Tente novamente.', 'erro');
+      }
       setSalvando(null);
       return;
     }
 
     router.refresh();
-    setMensagem({
-      texto: `${jogo.title} adicionado à coleção.`,
-      tipo: 'sucesso',
-    });
+    mostrarAviso(`${jogo.title} adicionado à coleção.`, 'sucesso');
     setSalvando(null);
   }
 
@@ -134,17 +143,6 @@ export default function BuscarPage() {
           aria-label="Buscar jogos"
           className="w-full max-w-lg rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
         />
-
-        {mensagem && (
-          <p
-            role="status"
-            className={`mt-4 text-sm ${
-              mensagem.tipo === 'sucesso' ? 'text-emerald-400' : 'text-amber-400'
-            }`}
-          >
-            {mensagem.texto}
-          </p>
-        )}
 
         {erro && (
           <p role="alert" className="mt-4 text-sm text-red-400">
@@ -211,6 +209,15 @@ export default function BuscarPage() {
           </a>
         </p>
       </footer>
+
+      {mensagem && (
+        <Toast
+          key={mensagem.id}
+          texto={mensagem.texto}
+          tipo={mensagem.tipo}
+          onFechar={fecharMensagem}
+        />
+      )}
     </main>
   );
 }
