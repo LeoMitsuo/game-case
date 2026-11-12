@@ -71,106 +71,100 @@ export default function FormEditarJogo({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-md rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-        <h2 className="mb-4 text-lg font-bold text-zinc-50">{item.title}</h2>
-
-        <form onSubmit={handleSubmit(salvar)} className="space-y-4">
-          <div className="space-y-1.5">
-            <label htmlFor="status" className="block text-sm text-zinc-300">
-              Status
-            </label>
-            <select
-              id="status"
-              {...register('status')}
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
-            >
-              {(Object.keys(ROTULOS_STATUS) as StatusJogo[]).map((s) => (
-                <option key={s} value={s}>
-                  {ROTULOS_STATUS[s]}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor="platform" className="block text-sm text-zinc-300">
-              Plataforma
-            </label>
-            <input
-              id="platform"
-              {...register('platform', { setValueAs: (v) => (v === '' ? null : v) })}
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor="rating" className="block text-sm text-zinc-300">
-              Nota (1 a 10)
-            </label>
-            <input
-              id="rating"
-              type="number"
-              min={1}
-              max={10}
-              {...register('rating', {
-              setValueAs: (v) => (v === '' || v === null ? null : Number(v)),
-              })}
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
-            />
-            {errors.rating && (
-              <p className="text-xs text-red-400">{errors.rating.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor="notes" className="block text-sm text-zinc-300">
-              Anotações
-            </label>
-            <textarea
-              id="notes"
-              rows={3}
-              {...register('notes', { setValueAs: (v) => (v === '' ? null : v) })}
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
-            />
-            {errors.notes && (
-              <p className="text-xs text-red-400">{errors.notes.message}</p>
-            )}
-          </div>
-
-          {erro && (
-            <p role="alert" className="text-sm text-red-400">
-              {erro}
-            </p>
-          )}
-
-          <div className="flex gap-2 pt-2">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-60"
-            >
-              {isSubmitting ? 'Salvando...' : 'Salvar'}
-            </button>
-            <button
-              type="button"
-              onClick={onFechar}
-              className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:text-zinc-100"
-            >
-              Cancelar
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={excluir}
-            disabled={excluindo}
-            className="w-full text-xs text-red-400 hover:text-red-300 disabled:opacity-60"
-          >
-            {excluindo ? 'Removendo...' : 'Remover da coleção'}
-          </button>
-        </form>
+    <form onSubmit={handleSubmit(salvar)} className="space-y-4">
+      <div className="space-y-1.5">
+        <label htmlFor="status" className="block text-sm text-zinc-300">
+          Status
+        </label>
+        <select
+          id="status"
+          {...register('status')}
+          className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
+        >
+          {(Object.keys(ROTULOS_STATUS) as StatusJogo[]).map((s) => (
+            <option key={s} value={s}>
+              {ROTULOS_STATUS[s]}
+            </option>
+          ))}
+        </select>
       </div>
-    </div>
+
+      <div className="space-y-1.5">
+        <label htmlFor="platform" className="block text-sm text-zinc-300">
+          Plataforma
+        </label>
+        <input
+          id="platform"
+          {...register('platform', { setValueAs: (v) => (v === '' ? null : v) })}
+          className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <label htmlFor="rating" className="block text-sm text-zinc-300">
+          Nota (1 a 10)
+        </label>
+        <input
+          id="rating"
+          type="number"
+          min={1}
+          max={10}
+          {...register('rating', {
+            setValueAs: (v) => (v === '' || v === null ? null : Number(v)),
+          })}
+          className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
+        />
+        {errors.rating && (
+          <p className="text-xs text-red-400">{errors.rating.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        <label htmlFor="notes" className="block text-sm text-zinc-300">
+          Anotações
+        </label>
+        <textarea
+          id="notes"
+          rows={3}
+          {...register('notes', { setValueAs: (v) => (v === '' ? null : v) })}
+          className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
+        />
+        {errors.notes && (
+          <p className="text-xs text-red-400">{errors.notes.message}</p>
+        )}
+      </div>
+
+      {erro && (
+        <p role="alert" className="text-sm text-red-400">
+          {erro}
+        </p>
+      )}
+
+      <div className="flex gap-2 pt-2">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-60"
+        >
+          {isSubmitting ? 'Salvando...' : 'Salvar'}
+        </button>
+        <button
+          type="button"
+          onClick={onFechar}
+          className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:text-zinc-100"
+        >
+          Cancelar
+        </button>
+      </div>
+
+      <button
+        type="button"
+        onClick={excluir}
+        disabled={excluindo}
+        className="w-full text-xs text-red-400 hover:text-red-300 disabled:opacity-60"
+      >
+        {excluindo ? 'Removendo...' : 'Remover da coleção'}
+      </button>
+    </form>
   );
 }

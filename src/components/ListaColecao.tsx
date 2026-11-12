@@ -1,12 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import CardJogo from './CardJogo';
 import FormEditarJogo from './FormEditarJogo';
+import Modal from './Modal';
 import { ItemColecao } from '@/types/colecao';
 
 export default function ListaColecao({ itens }: { itens: ItemColecao[] }) {
   const [emEdicao, setEmEdicao] = useState<ItemColecao | null>(null);
+
+  // Identidade estável: evita que o efeito de teclado do Modal
+  // seja refeito a cada renderização desta lista.
+  const fecharEdicao = useCallback(() => setEmEdicao(null), []);
 
   return (
     <>
@@ -17,7 +22,9 @@ export default function ListaColecao({ itens }: { itens: ItemColecao[] }) {
       </div>
 
       {emEdicao && (
-        <FormEditarJogo item={emEdicao} onFechar={() => setEmEdicao(null)} />
+        <Modal titulo={emEdicao.title} onFechar={fecharEdicao}>
+          <FormEditarJogo item={emEdicao} onFechar={fecharEdicao} />
+        </Modal>
       )}
     </>
   );

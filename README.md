@@ -128,7 +128,6 @@ Os testes verificam comportamento visível, não implementação: reescrever um 
 - **Gerar os tipos a partir do schema do Supabase** — hoje o tipo `ItemColecao` é escrito à mão e há uma asserção de tipo na consulta. Com os tipos gerados, uma coluna renomeada no banco viraria erro de compilação.
 - **Filtros e paginação na coleção** — a listagem carrega tudo de uma vez. Com algumas dezenas de jogos funciona; com centenas, não.
 - **Testes de integração nos fluxos de autenticação** — login e cadastro são testados manualmente hoje.
-- **Acessibilidade de teclado no modal de edição** — falta prender o foco dentro dele e fechar com Esc.
 - **Estado otimista ao editar** — hoje a tela espera a resposta do servidor antes de atualizar.
 
 ---
@@ -146,6 +145,8 @@ src/
 ├── components/
 │   ├── ListaColecao.tsx      # estado de edição
 │   ├── CardJogo.tsx
+│   ├── Modal.tsx             # Esc, clique fora, foco preso
+│   ├── Toast.tsx             # aviso temporário com dispensa automática
 │   ├── FormEditarJogo.tsx    # React Hook Form + Zod
 │   └── BotaoSair.tsx
 ├── lib/
