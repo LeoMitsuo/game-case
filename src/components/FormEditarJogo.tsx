@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createClient } from '@/lib/supabase/client';
 import { schemaItem, DadosItem } from '@/lib/validacao';
+import { useToast } from '@/lib/toast';
 import { ItemColecao, ROTULOS_STATUS, StatusJogo } from '@/types/colecao';
 
 export default function FormEditarJogo({
@@ -19,6 +20,7 @@ export default function FormEditarJogo({
   const [excluindo, setExcluindo] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+  const mostrarAviso = useToast((estado) => estado.mostrar);
 
   const {
     register,
@@ -49,6 +51,7 @@ export default function FormEditarJogo({
 
     router.refresh();
     onFechar();
+    mostrarAviso('Alterações salvas.', 'sucesso');
   }
 
   async function excluir() {
@@ -68,6 +71,7 @@ export default function FormEditarJogo({
 
     router.refresh();
     onFechar();
+    mostrarAviso(`${item.title} removido da coleção.`, 'sucesso');
   }
 
   return (

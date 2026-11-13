@@ -4,7 +4,9 @@ Aplicação web para gerenciar uma coleção de jogos: você busca um título nu
 
 **[🔗 Ver o projeto no ar](https://game-case-seven.vercel.app)**
 
+<!-- Substitua pelo print da coleção com alguns jogos:
 ![Tela da coleção](./public/screenshot.png)
+-->
 
 > **Conta de teste:** a aplicação não exige confirmação de e-mail, então dá para criar uma conta em dez segundos e testar o fluxo completo.
 
@@ -17,11 +19,13 @@ Aplicação web para gerenciar uma coleção de jogos: você busca um título nu
 - Adicionar um jogo à coleção, com capa e plataforma preenchidas automaticamente
 - Editar status (jogando, zerado, quero jogar, abandonado), plataforma, nota e anotações
 - Remover um jogo da coleção
+- Confirmação de cada ação por um aviso temporário, visível em qualquer ponto da página
 - Cada usuário enxerga apenas a própria coleção
 
 ## Tecnologias
 
 **Front-end:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS
+**Estado e dados assíncronos:** TanStack Query · Zustand
 **Dados:** Supabase (PostgreSQL + Auth) · Row Level Security
 **Formulários:** React Hook Form · Zod
 **Testes:** Vitest · React Testing Library
@@ -70,11 +74,17 @@ O token de acesso vale cerca de 60 dias, então fica guardado em memória e só 
 
 ### Busca que não desperdiça requisições
 
-Dois problemas aparecem em qualquer busca conforme o usuário digita, e os dois são tratados:
+Três problemas aparecem em qualquer busca conforme o usuário digita:
 
-**Uma requisição por tecla.** Um `useEffect` com `setTimeout` agenda a busca para 400ms depois, e a função de limpeza cancela o agendamento anterior a cada tecla. Digitar "portal" rapidamente dispara uma requisição, não seis.
+**Uma requisição por tecla.** Um `useEffect` com `setTimeout` só promove o texto digitado a termo de busca 400ms depois da última tecla, e a função de limpeza cancela o agendamento anterior. Digitar "portal" rapidamente dispara uma requisição, não seis.
 
-**Respostas fora de ordem.** Se você busca "port" e depois "portal", nada garante que as respostas cheguem na ordem em que saíram — a primeira pode chegar por último e sobrescrever o resultado certo. Cada nova busca aborta a anterior com `AbortController`, e o `AbortError` é tratado como cancelamento, não como falha.
+**Respostas fora de ordem.** Se você busca "port" e depois "portal", nada garante que as respostas cheguem na ordem em que saíram. A busca usa TanStack Query com o termo na `queryKey`: quando a chave muda, a biblioteca aborta a requisição anterior pelo `signal` que entrega à função de busca.
+
+**Buscar de novo o que já foi buscado.** Voltar a um termo pesquisado nos últimos cinco minutos serve o resultado do cache, sem tocar a rede.
+
+A primeira versão fazia isso à mão, com `AbortController` guardado em `useRef` e três `useState` para carregamento, erro e resultado, sincronizados num `try/catch/finally`. Funcionava, e escrever daquele jeito foi o que me fez entender o que a biblioteca resolve. A migração removeu o controle manual e trouxe o cache, que a versão anterior não tinha.
+
+A gravação segue a mesma linha: adicionar um jogo é um `useMutation`, e o botão que fica desabilitado é o do jogo que está em voo, identificado por `mutation.variables`.
 
 ### Trocar de API mexendo em um arquivo só
 
@@ -95,15 +105,39 @@ A tela de busca, o banco e os testes não souberam da troca. É o padrão de cam
 
 ### Cache que também guarda erro
 
-A primeira versão cacheava a resposta da API externa por uma hora, para economizar cota. O problema apareceu junto com a instabilidade da RAWG: uma falha momentânea ficava congelada por 60 minutos, e o cache sobrevivia inclusive a novos deploys.
+A primeira versão cacheava no servidor a resposta da API externa por uma hora, para economizar cota. O problema apareceu junto com a instabilidade da RAWG: uma falha momentânea ficava congelada por 60 minutos, e o cache sobrevivia inclusive a novos deploys.
 
-A busca passou a usar `cache: 'no-store'`. O debounce já limita o volume de requisições, e uma resposta ruim nunca mais fica presa.
+A rota passou a usar `cache: 'no-store'`. O cache que existe hoje é o do TanStack Query, no navegador, que guarda apenas respostas bem-sucedidas.
 
 ### Jogo duplicado é impedido pelo banco
 
 Um índice único em `(user_id, external_id)` garante que o mesmo jogo não entre duas vezes na mesma coleção, permitindo que pessoas diferentes tenham o mesmo título. A aplicação não consulta antes de inserir: tenta inserir e trata o código `23505` do PostgreSQL.
 
 A diferença importa sob concorrência — dois cliques simultâneos passariam por uma verificação prévia, mas não passam por uma restrição no banco.
+
+### Um modal que funciona sem mouse
+
+O `Modal` é um componente genérico: recebe título, conteúdo e uma função de fechar, e não sabe nada sobre jogos. O formulário de edição mora dentro dele e continua sendo um formulário comum.
+
+O que o componente garante:
+
+- Fecha com Esc, com clique no fundo e pelo botão de fechar
+- Ao abrir, o foco vai para o primeiro campo; ao fechar, volta para o elemento que estava focado antes
+- Tab e Shift+Tab circulam apenas entre os elementos do diálogo, sem escapar para a página coberta
+- A página de fundo não rola enquanto ele está aberto
+- `role="dialog"`, `aria-modal` e `aria-labelledby` anunciam o título para leitores de tela
+
+O clique fora é detectado comparando `event.target` com `event.currentTarget` no fundo, em vez de `stopPropagation` na caixa — que interromperia a propagação de qualquer clique interno, inclusive de código escrito depois.
+
+### Avisos que qualquer tela pode disparar
+
+As confirmações ("adicionado à coleção", "alterações salvas") aparecem num aviso fixo no rodapé, que some sozinho em quatro segundos. O estado dele fica num store do Zustand, e o componente é renderizado uma única vez, no layout.
+
+O motivo é prático: quem dispara o aviso e quem o exibe estão em pontos diferentes da árvore. O formulário de edição fecha o modal e, em seguida, precisa avisar que salvou — numa tela que ele não controla. Com o store, é uma chamada de função.
+
+Cada aviso carrega um identificador, e o cronômetro de dispensa depende dele. Sem isso, adicionar dois jogos seguidos faria o segundo aviso herdar o tempo restante do primeiro.
+
+O aviso usa `aria-live="polite"` para ser anunciado por leitores de tela, e a animação de entrada é desativada para quem configurou `prefers-reduced-motion`.
 
 ---
 
@@ -113,11 +147,13 @@ A diferença importa sob concorrência — dois cliques simultâneos passariam p
 npm test
 ```
 
-Dez testes cobrindo as duas pontas que mais quebram em silêncio:
+Dezenove testes, em três frentes:
 
-**Componente de card** — título, status traduzido, nota e plataforma; o texto alternativo quando não há capa; o `alt` descritivo quando há; a omissão da nota quando ela é nula; e o aviso ao componente pai quando o card é clicado.
+**Modal (9)** — os três jeitos de fechar, o clique interno que não fecha, o foco inicial, a navegação por Tab presa ao diálogo nos dois sentidos, a devolução do foco e a trava de rolagem.
 
-**Schema de validação** — nota fora do intervalo, status fora da lista permitida, anotação acima do limite, e o caso em que a nota não é preenchida.
+**Componente de card (5)** — título, status traduzido, nota e plataforma; o texto alternativo quando não há capa; o `alt` descritivo quando há; a omissão da nota quando ela é nula; e o aviso ao componente pai quando o card é clicado.
+
+**Schema de validação (5)** — nota fora do intervalo, status fora da lista permitida, anotação acima do limite, e o caso em que a nota não é preenchida.
 
 Os testes verificam comportamento visível, não implementação: reescrever um componente por dentro, mantendo o que aparece na tela, não quebra nenhum deles.
 
@@ -127,7 +163,8 @@ Os testes verificam comportamento visível, não implementação: reescrever um 
 
 - **Gerar os tipos a partir do schema do Supabase** — hoje o tipo `ItemColecao` é escrito à mão e há uma asserção de tipo na consulta. Com os tipos gerados, uma coluna renomeada no banco viraria erro de compilação.
 - **Filtros e paginação na coleção** — a listagem carrega tudo de uma vez. Com algumas dezenas de jogos funciona; com centenas, não.
-- **Testes de integração nos fluxos de autenticação** — login e cadastro são testados manualmente hoje.
+- **Testes de integração nos fluxos de autenticação e de busca** — login, cadastro e a tela de busca são testados manualmente hoje.
+- **Confirmação de exclusão no próprio modal** — a remoção ainda usa o `confirm()` nativo do navegador, que destoa do resto da interface.
 - **Estado otimista ao editar** — hoje a tela espera a resposta do servidor antes de atualizar.
 
 ---
@@ -137,10 +174,12 @@ Os testes verificam comportamento visível, não implementação: reescrever um 
 ```
 src/
 ├── app/
+│   ├── layout.tsx            # Providers e aviso global
+│   ├── providers.tsx         # QueryClientProvider
 │   ├── page.tsx              # coleção (Server Component)
 │   ├── login/
 │   ├── cadastro/
-│   ├── buscar/               # busca com debounce
+│   ├── buscar/               # busca com debounce e TanStack Query
 │   └── api/jogos/route.ts    # token OAuth + consulta à IGDB
 ├── components/
 │   ├── ListaColecao.tsx      # estado de edição
@@ -153,6 +192,7 @@ src/
 │   ├── supabase/
 │   │   ├── client.ts         # cliente do navegador
 │   │   └── server.ts         # cliente do servidor
+│   ├── toast.ts              # store do Zustand
 │   └── validacao.ts          # schema Zod
 ├── types/colecao.ts
 └── middleware.ts             # renova sessão e protege rotas
