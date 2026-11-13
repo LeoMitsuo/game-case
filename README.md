@@ -4,9 +4,7 @@ Aplicação web para gerenciar uma coleção de jogos: você busca um título nu
 
 **[🔗 Ver o projeto no ar](https://game-case-seven.vercel.app)**
 
-<!-- Substitua pelo print da coleção com alguns jogos:
 ![Tela da coleção](./public/screenshot.png)
--->
 
 > **Conta de teste:** a aplicação não exige confirmação de e-mail, então dá para criar uma conta em dez segundos e testar o fluxo completo.
 
