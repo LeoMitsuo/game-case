@@ -145,11 +145,11 @@ O aviso usa `aria-live="polite"` para ser anunciado por leitores de tela, e a an
 npm test
 ```
 
-Dezenove testes, em três frentes:
+Vinte e dois testes, em três frentes:
 
 **Modal (9)** — os três jeitos de fechar, o clique interno que não fecha, o foco inicial, a navegação por Tab presa ao diálogo nos dois sentidos, a devolução do foco e a trava de rolagem.
 
-**Componente de card (5)** — título, status traduzido, nota e plataforma; o texto alternativo quando não há capa; o `alt` descritivo quando há; a omissão da nota quando ela é nula; e o aviso ao componente pai quando o card é clicado.
+**Componente de card (8)** — título, status traduzido, nota e plataforma; o texto alternativo quando não há capa; o `alt` descritivo quando há; a omissão da nota quando ela é nula; e o aviso ao componente pai quando o card é clicado.
 
 **Schema de validação (5)** — nota fora do intervalo, status fora da lista permitida, anotação acima do limite, e o caso em que a nota não é preenchida.
 

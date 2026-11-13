@@ -18,6 +18,11 @@ const itemBase: ItemColecao = {
   updated_at: '2026-01-01T00:00:00Z',
 };
 
+const itemComAnotacao: ItemColecao = {
+  ...itemBase,
+  notes: 'Terminei a história principal em 40 horas.',
+};
+
 describe('CardJogo', () => {
   test('exibe título, status traduzido, nota e plataforma', () => {
     render(<CardJogo item={itemBase} onEditar={vi.fn()} />);
@@ -58,5 +63,50 @@ describe('CardJogo', () => {
     await userEvent.click(screen.getByRole('button'));
 
     expect(aoEditar).toHaveBeenCalledWith(itemBase);
+  });
+
+  test('não oferece o botão de anotações quando o jogo não tem anotação', () => {
+    render(<CardJogo item={itemBase} onEditar={vi.fn()} />);
+
+    expect(
+      screen.queryByRole('button', { name: /anotações/i })
+    ).not.toBeInTheDocument();
+  });
+
+  test('mostra e oculta as anotações ao alternar o botão', async () => {
+    render(<CardJogo item={itemComAnotacao} onEditar={vi.fn()} />);
+
+    expect(
+      screen.queryByText('Terminei a história principal em 40 horas.')
+    ).not.toBeInTheDocument();
+
+    const alternar = screen.getByRole('button', { name: 'Ver anotações' });
+    expect(alternar).toHaveAttribute('aria-expanded', 'false');
+
+    await userEvent.click(alternar);
+
+    expect(
+      screen.getByText('Terminei a história principal em 40 horas.')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Ocultar anotações' })
+    ).toHaveAttribute('aria-expanded', 'true');
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Ocultar anotações' })
+    );
+
+    expect(
+      screen.queryByText('Terminei a história principal em 40 horas.')
+    ).not.toBeInTheDocument();
+  });
+
+  test('abrir as anotações não aciona a edição', async () => {
+    const aoEditar = vi.fn();
+    render(<CardJogo item={itemComAnotacao} onEditar={aoEditar} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ver anotações' }));
+
+    expect(aoEditar).not.toHaveBeenCalled();
   });
 });
