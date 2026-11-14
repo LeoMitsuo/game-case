@@ -87,12 +87,12 @@ export default function Modal({ titulo, onFechar, children }: ModalProps) {
           data-fechar
           onClick={onFechar}
           aria-label="Fechar"
-          className="absolute right-4 top-4 rounded-md p-1 text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="absolute right-4 top-4 rounded-md p-1 text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
         >
           ✕
         </button>
 
-        <h2 id="titulo-modal" className="mb-4 pr-8 text-lg font-semibold text-zinc-100">
+        <h2 id="titulo-modal" className="mb-4 pr-8 font-display text-lg font-semibold text-zinc-100">
           {titulo}
         </h2>
 

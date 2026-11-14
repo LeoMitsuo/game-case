@@ -21,7 +21,7 @@ export default function CardJogo({
   const idPainel = useId();
 
   return (
-    <article className="relative flex flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 transition hover:border-zinc-600">
+    <article className="relative flex flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 transition hover:border-violet-500/50">
       <button
         type="button"
         onClick={() => onEditar(item)}

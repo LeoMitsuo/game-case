@@ -1,8 +1,25 @@
 @import "tailwindcss";
 
+/* Neutros com um leve tom de roxo, para combinar com a logo.
+   Sobrescreve a escala zinc do Tailwind: todas as classes zinc-*
+   do projeto passam a usar estes valores. */
+@theme {
+  --color-zinc-50: #faf9fd;
+  --color-zinc-100: #f1eff7;
+  --color-zinc-200: #e2deec;
+  --color-zinc-300: #c9c3d9;
+  --color-zinc-400: #a39bb8;
+  --color-zinc-500: #7e7499;
+  --color-zinc-600: #5b5078;
+  --color-zinc-700: #3a2e5c;
+  --color-zinc-800: #261c42;
+  --color-zinc-900: #15121d;
+  --color-zinc-950: #0b0a10;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0b0a10;
+  --foreground: #f1eff7;
 }
 
 @theme inline {
@@ -10,19 +27,20 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-display: var(--font-space-grotesk);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Painel de marca das telas de login e cadastro */
+.painel-marca {
+  background-color: #150c28;
+  background-image: radial-gradient(rgb(167 139 250 / 0.1) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 @keyframes toast-sobe {

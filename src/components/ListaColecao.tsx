@@ -57,12 +57,12 @@ export default function ListaColecao({ itens }: { itens: ItemColecao[] }) {
                 aria-pressed={ativo}
                 className={`rounded-full border px-3 py-1 text-xs transition focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 ${
                   ativo
-                    ? 'border-zinc-100 bg-zinc-100 text-zinc-900'
+                    ? 'border-violet-400 bg-violet-500/20 text-violet-100'
                     : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-100'
                 }`}
               >
                 {opcao.rotulo}
-                <span className={ativo ? 'ml-1.5 text-zinc-500' : 'ml-1.5 text-zinc-600'}>
+                <span className={ativo ? 'ml-1.5 text-violet-300' : 'ml-1.5 text-zinc-600'}>
                   {opcao.quantidade}
                 </span>
               </button>

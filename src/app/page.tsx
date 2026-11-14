@@ -22,13 +22,21 @@ export default async function HomePage() {
     <main className="min-h-screen bg-zinc-950">
       <header className="flex items-center justify-between border-b border-zinc-800 px-6 py-4">
         <div>
-          <h1 className="text-lg font-bold text-zinc-50">Game Case</h1>
-          <p className="text-xs text-zinc-500">{user?.email}</p>
+          <h1>
+            <img
+              src="/logo-horizontal.svg"
+              alt="Game Case"
+              width={119}
+              height={40}
+              className="h-9 w-auto"
+            />
+          </h1>
+          <p className="mt-1 text-xs text-zinc-500">{user?.email}</p>
         </div>
         <div className="flex items-center gap-3">
           <Link
             href="/buscar"
-            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
+            className="rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-500"
           >
             Adicionar jogo
           </Link>

@@ -96,7 +96,7 @@ export default function BuscarPage() {
   return (
     <main className="min-h-screen bg-zinc-950">
       <header className="flex items-center justify-between border-b border-zinc-800 px-6 py-4">
-        <h1 className="text-lg font-bold text-zinc-50">Buscar jogos</h1>
+        <h1 className="font-display text-lg font-bold text-zinc-50">Buscar jogos</h1>
         <Link href="/" className="text-sm text-zinc-400 transition hover:text-zinc-100">
           Minha coleção
         </Link>
@@ -109,7 +109,7 @@ export default function BuscarPage() {
           onChange={(e) => setTermo(e.target.value)}
           placeholder="Digite o nome de um jogo..."
           aria-label="Buscar jogos"
-          className="w-full max-w-lg rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          className="w-full max-w-lg rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
         />
 
         {isError && (
@@ -157,7 +157,7 @@ export default function BuscarPage() {
                     type="button"
                     onClick={() => adicionar.mutate(jogo)}
                     disabled={salvandoEste}
-                    className="w-full rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-500 disabled:opacity-60"
+                    className="w-full rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-violet-500 disabled:opacity-60"
                   >
                     {salvandoEste ? 'Adicionando...' : 'Adicionar'}
                   </button>
